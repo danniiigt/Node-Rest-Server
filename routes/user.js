@@ -5,7 +5,7 @@ const { esRoleValido, emailExiste, existeUsuarioPorID } = require('../helpers/db
 const { check, validationResult } = require('express-validator');
 const { validarJWT } = require('../middlewares/validar-jwt');
 const { request, response } = require('express');
-const { esAdminRole } = require('../middlewares/validar-roles');
+const { esAdminRole, tieneRole } = require('../middlewares/validar-roles');
 const router = Router();
 
 router.get('/', async (req, res) => {
@@ -67,7 +67,7 @@ router.post(
         error
       })
     }
-  })
+})
 
 router.put(
   '/:id', [
@@ -104,13 +104,11 @@ router.put(
       "cambios": resto,
       usuario
     })
-  })
-
-//
+})
 
 router.delete('/:id', [
   validarJWT,
-  esAdminRole,
+  tieneRole('ADMIN_ROLE', 'VENTAS_ROLE'),
   check('id', 'No es un ID válido').isMongoId(),
   check('id').custom((id) => existeUsuarioPorID(id))],
   async (req, res = response) => {

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <div id="g_id_onload"
+       data-client_id="556268421995-k04f1b8j04ksuasg3obdm6kjl3sh5ih4.apps.googleusercontent.com"
+       data-callback="handleCredentialResponse"
+       data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+       data-type="standard"
+       data-size="large"
+       data-theme="outline"
+       data-text="sign_in_with"
+       data-shape="rectangular"
+       data-logo_alignment="left">
+    </div>
+
+    <div class="g_id_signout">
+        <button class="logout" id="logout">Log Out</button>
+    </div>
+
+    <div>
+        <form action="">
+            <div class="bloque">
+                <input type="text" placeholder="Nombre" id="nombre">
+            </div>
+            <div class="bloque">
+                <input type="email" class="separar" placeholder="Email" id="email">
+                <input type="password" class="separar" placeholder="Password" id="password">
+            </div>
+            <div class="bloque nomargin">
+                <button id="limpiarDatos">Limpiar</button>
+                <button id="añadirDatos">Añadir Datos</button>
+                <button class="green" id="guardarDb">Guardar en BD</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

@@ -5,6 +5,7 @@ const router = Router();
 const Usuario = require('../models/usuario')
 const bcrypt = require('bcrypt');
 const { generarJWT } = require('../helpers/generar-jwt');
+const { googleVerify } = require('../helpers/validar-token-google');
 
 router.post(
     '/login', [
@@ -68,5 +69,63 @@ router.post(
             })
         }
     });
+
+router.post(
+    '/google', [
+        check('id_token', 'El token ID es necesario').not().isEmpty()
+    ], 
+    async (req, res) => {
+        const {id_token} = req.body
+
+        //Verificar si hay errores
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                ok: false,
+                errors: errors.array()
+            });
+        }
+
+        try {
+            const {correo, nombre, img} = await googleVerify(id_token)
+            let usuario = await Usuario.findOne({correo})
+
+            if(!usuario) {
+                const data = {
+                    nombre, 
+                    correo, 
+                    password: '123456',
+                    rol: 'USER_ROLE',
+                    google: true,
+                    img
+                }
+
+                usuario = new Usuario(data);
+                await usuario.save();
+            }
+
+            if(!usuario.estado) {
+                res.status(401).json({
+                    ok: false,
+                    msg: 'Usuario bloqueado'
+                })
+            }
+
+            // Generar el JWT
+            const token = await generarJWT(usuario.id)
+
+            res.json({
+                usuario,
+                token
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                ok: false,
+                error
+            })
+        }
+
+    })
 
 module.exports = router;

@@ -22,6 +22,27 @@ const esAdminRole = (req, res = response, next) => {
     next()
 }
 
+const tieneRole = (...roles) => {
+    return(req, res = response, next) => {
+        if(!req.usuario) {
+            return res.status(500).json({
+                ok: false,
+                msg: 'No hay un usuario establecido'
+            })
+        }
+
+        if(!roles.includes(req.usuario.rol)) {
+            return res.status(500).json({
+                ok: false,
+                msg: `El usuario no tiene uno de los roles aceptados: ${roles}`
+            })
+        }
+
+        next()
+    }
+}
+
 module.exports = {
-    esAdminRole
+    esAdminRole,
+    tieneRole
 }
