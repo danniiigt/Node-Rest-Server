@@ -23,6 +23,13 @@ const existeUsuarioPorID = async (id = '') => {
     }
 }
 
+const existeCategoriaPorID = async (id = '') => {
+    const existeCategoria = await Categoria.findById(id)
+    if (!existeCategoria) {
+      throw new Error('No se encuentra categoria con el ID proporcionado.')
+    }
+}
+
 const existeEsaCategoria = async (nombre = '') => {
     const existeCategoria = await Categoria.findOne({nombre})
     if(existeCategoria) {
@@ -34,5 +41,6 @@ module.exports = {
     esRoleValido,
     emailExiste,
     existeUsuarioPorID,
-    existeEsaCategoria
+    existeEsaCategoria,
+    existeCategoriaPorID
 }
