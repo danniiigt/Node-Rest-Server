@@ -1,7 +1,9 @@
 const { Router } = require('express')
 const { check, validationResult } = require('express-validator');
 const { existeEsaCategoria, existeCategoriaPorID } = require('../helpers/db-validators');
+const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
+const { tieneRole } = require('../middlewares/validar-roles');
 const router = Router();
 const Categoria = require('../models/categoria');
 
@@ -9,13 +11,14 @@ const Categoria = require('../models/categoria');
 // OBTENER TODAS LAS CATEGORIAS - Paginado - Mostrar total - Populate
 router.get('/', validarJWT, async (req, res) => {
     const { limite = 5, desde = 0 } = req.query;
-    const categorias = await Categoria.find()
+    const categorias = await Categoria.find({ estado: true })
         .skip(Number(desde))
         .limit(Number(limite))
 
     res.json({
+        ok: true,
         total: categorias.length,
-        desde: desde,
+        desde,
         limite,
         categorias,
     })
@@ -27,20 +30,11 @@ router.get(
     validarJWT,
     check('id', 'El ID no es válido').not().isEmpty(),
     check('id').custom((id) => existeCategoriaPorID(id)),
-    check('id', 'El ID no es válido').isMongoId()
+    check('id', 'El ID no es válido').isMongoId(),
+    validarCampos
 ],
     async (req, res) => {
         const id = req.params.id
-
-        //Verificar si hay errores
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                ok: false,
-                errors: errors.array()
-            });
-        }
-
         const categoria = await Categoria.findById(id)
 
         res.json({
@@ -56,6 +50,7 @@ router.post(
     validarJWT,
     check('nombre', 'El nombre es obligatorio').not().isEmpty(),
     check('nombre').custom((nombre) => existeEsaCategoria(nombre)),
+    validarCampos
     //check('usuario', 'El usuario es obligatorio').not().isEmpty(),
     //check('usuario', 'Introduce un ID de usuario válido').isMongoId(),
     // check('estado', 'El estado es obligatorio').not().isEmpty(),
@@ -63,15 +58,6 @@ router.post(
     async (req, res) => {
         const { nombre, estado } = req.body
         const usuario = req.usuario._id
-
-        //Verificar si hay errores
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                ok: false,
-                errors: errors.array()
-            });
-        }
 
         const categoria = new Categoria({
             nombre,
@@ -94,36 +80,48 @@ router.put(
     check('id', 'El ID no es válido').not().isEmpty(),
     check('id').custom((id) => existeCategoriaPorID(id)),
     check('id', 'El ID no es válido').isMongoId(),
-    check('nombre', 'El nombre no es válido').not().isEmpty()
+    check('nombre', 'Debes de incluir el nuevo nombre').not().isEmpty(),
+    check('nombre').custom((nombre) => existeEsaCategoria(nombre)),
+    validarCampos
 ],
     async (req, res) => {
         const id = req.params.id
-        const {nombre} = req.body
+        const { nombre } = req.body
+        const usuario = req.usuario._id
 
-        const categoria = await Categoria.findByIdAndUpdate(id, {nombre})
+        const categoria = await Categoria.findByIdAndUpdate(id, { nombre, usuario }, {new: true})
         categoria.save()
 
-        if(categoria.nombre === nombre) {
-            return res.json({
-                ok: false,
-                msg: "No se ha modificado la tarea puesto que el nombre introducido es el mismo al que ya hay."
-            })
-        } else {
-            res.json({
-                ok: true,
-                modificado: nombre,
-                categoria
-            })
-        }
+        res.json({
+            ok: true,
+            categoria
+        })
     });
 
 
 // BORRAR UNA CATEGORIA (PRIVADO) CON TOKEN_ID (SOLO ADMIN_ROLE)
-router.delete('/', async (req, res) => {
-    //NO BORRAR, PASAR EL ESTADO A false
-    res.json({
-        msg: 'todo OK'
-    })
-});
+router.delete(
+    '/:id', [
+    validarJWT,
+    tieneRole('ADMIN_ROLE'),
+    check('id', 'No es un ID válido').isMongoId(),
+    check('id').custom((id) => existeCategoriaPorID(id))],
+    async (req, res) => {
+        const id = req.params.id
+        const usuarioAutenticado = req.usuario
+        const categoria = await Categoria.findByIdAndUpdate(id, { estado: false })
+
+        if (!categoria.estado) {
+            return res.json({
+                ok: false,
+                msg: 'La categoria ya está deshabilitada.'
+            })
+        } else {
+            res.json({
+                ok: true,
+                categoria
+            })
+        }
+    });
 
 module.exports = router

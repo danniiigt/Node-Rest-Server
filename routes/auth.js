@@ -6,23 +6,15 @@ const Usuario = require('../models/usuario')
 const bcrypt = require('bcrypt');
 const { generarJWT } = require('../helpers/generar-jwt');
 const { googleVerify } = require('../helpers/validar-token-google');
+const { validarCampos } = require('../middlewares/validar-campos');
 
 router.post(
     '/login', [
     check('correo', 'El correo es obligatorio').isEmail(),
     check('password', 'La contraseña es obligatoria').not().isEmpty(),
+    validarCampos
     ],
     async (req, res = response) => {
-
-        //Verificar si hay errores
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                ok: false,
-                errors: errors.array()
-            });
-        }
-
         const { correo, password } = req.body;
         try {
 
@@ -72,19 +64,11 @@ router.post(
 
 router.post(
     '/google', [
-        check('id_token', 'El token ID es necesario').not().isEmpty()
+        check('id_token', 'El token ID es necesario').not().isEmpty(),
+        validarCampos
     ], 
     async (req, res) => {
         const {id_token} = req.body
-
-        //Verificar si hay errores
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                ok: false,
-                errors: errors.array()
-            });
-        }
 
         try {
             const {correo, nombre, img} = await googleVerify(id_token)
