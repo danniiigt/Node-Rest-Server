@@ -10,10 +10,7 @@ const { validarCampos } = require('../middlewares/validar-campos');
 const router = Router();
 
 router.get('/', async (req, res) => {
-  const date = new Date()
   const { limite = 5, desde = 0 } = req.query
-
-  console.log(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - Petición GET`)
 
   const usuarios = await Usuario.find({ estado: true })
     .skip(Number(desde))
@@ -39,7 +36,6 @@ router.post(
 
     let { nombre, correo, password, rol } = req.body
     const date = new Date()
-    console.log(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - Petición POST`)
 
     //Encriptar la contraseña
     const salt = bcrypt.genSaltSync(10);
@@ -81,8 +77,6 @@ router.put(
     const usuario = await Usuario.findByIdAndUpdate(id, resto, { new: true })
 
     const date = new Date()
-    console.log(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - Petición PUT`)
-
 
     res.json({
       ok: true,
