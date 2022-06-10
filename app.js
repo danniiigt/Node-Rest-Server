@@ -7,6 +7,7 @@ const port = process.env.PORT
 
 console.clear()
 console.log(' NODE REST SERVER @danniiigt '.bgBlue)
+app.use(cors())
 app.use(express.static('public'));
 app.use(express.json())
 app.use(fileUpload({
@@ -23,4 +24,5 @@ app.use('/api/buscar', require('./routes/buscar.js'))
 app.use('/api/uploads', require('./routes/uploads'))
 
 app.listen(port)
-console.log(`\nEscuchando el puerto http://localhost:${port}/`.blue);
+console.log(`\nLocal App: ${`https://localhost:${port}`.blue}`.yellow);
+console.log(`\Heroku App: ${(process.env.HEROKU_URL).blue}`.yellow);

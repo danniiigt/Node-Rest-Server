@@ -76,8 +76,6 @@ router.put(
 
     const usuario = await Usuario.findByIdAndUpdate(id, resto, { new: true })
 
-    const date = new Date()
-
     res.json({
       ok: true,
       usuario

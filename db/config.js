@@ -5,7 +5,7 @@ const dbConnection = async () => {
     try {
         await mongoose.connect(process.env.MONGODBCONNECTION);
 
-        console.log(`Conectada MongoDb v${mongoose.version}`.green);
+        console.log(`\nConectada MongoDb v${mongoose.version}`.blue);
 
     } catch (error) {
         throw new Error('Error en la db: ' + error)
